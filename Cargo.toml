@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ratatui = "0.30.0"
+ratatui = { version = "0.30.0", features = ["crossterm"] }
+crossterm = "0.29.0"
 rusqlite = { version = "0.38.0", features = ["bundled"] }
 tokio = { version = "1.28.2", features = ["full"] }
 vrchatapi = "^1.0"

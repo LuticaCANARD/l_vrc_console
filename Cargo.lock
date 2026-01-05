@@ -988,6 +988,7 @@ dependencies = [
 name = "l_vrc_console"
 version = "0.1.0"
 dependencies = [
+ "crossterm",
  "ratatui",
  "rosc",
  "rusqlite",

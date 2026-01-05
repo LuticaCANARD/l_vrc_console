@@ -2,7 +2,9 @@ mod ui;
 mod contracts;
 mod integration;
 mod config;
+mod controllers;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     println!("Hello, world!");
 }

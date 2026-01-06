@@ -14,12 +14,21 @@ use ratatui::{
     Frame, Terminal,
 };
 
+use crate::queues;
+
 use super::views::{
     cpu_cores::CpuCoresView,
     status::StatusView,
     system_monitor::SystemMonitorView,
     TickingComponent, ViewComponent,
 };
+
+pub enum ViewerMessage {
+    Quit,
+}
+pub enum ViewerCommand {
+    // 추후 명령어 추가 가능
+}
 
 /// 앱 상태를 관리하는 구조체
 pub struct App {
@@ -176,7 +185,9 @@ impl App {
 }
 
 /// 터미널 UI 실행
-pub fn show_ui() -> Result<(), io::Error> {
+pub fn show_ui(
+    tx: std::sync::mpsc::Sender<ViewerCommand>,
+) -> Result<(), io::Error> {
     // 터미널 초기화
     enable_raw_mode()?;
     let mut stdout = stdout();
@@ -196,6 +207,17 @@ pub fn show_ui() -> Result<(), io::Error> {
 
     // 메인 루프
     loop {
+        // 이벤트 처리
+        let rx = queues::view_command::get_viewer_channels().rx_message.lock().unwrap();
+        if let Ok(message) = rx.try_recv() {
+            match message {
+                ViewerMessage::Quit => {
+                    app.should_quit = true;
+                }
+            }
+        }
+
+        // 프레임 시작 시간
         let frame_start = Instant::now();
 
         // 뷰 전환 시 화면 클리어

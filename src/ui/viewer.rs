@@ -14,7 +14,7 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::queues;
+use crate::{queues, ui::views::vrchat_page::VrchatPageView};
 
 use super::views::{
     cpu_cores::CpuCoresView,
@@ -23,11 +23,13 @@ use super::views::{
     TickingComponent, ViewComponent,
 };
 
+#[derive(Clone)]
 pub enum ViewerMessage {
-    Quit,
 }
+
+#[derive(Clone)]
 pub enum ViewerCommand {
-    // 추후 명령어 추가 가능
+    Quit,
 }
 
 /// 앱 상태를 관리하는 구조체
@@ -103,6 +105,8 @@ impl App {
         app.register_ticking_view(StatusView::new());
         app.register_ticking_view(SystemMonitorView::new());
         app.register_ticking_view(CpuCoresView::new());
+        app.register_view(VrchatPageView::new());
+
 
         app
     }
@@ -185,15 +189,14 @@ impl App {
 }
 
 /// 터미널 UI 실행
-pub fn show_ui(
-    tx: std::sync::mpsc::Sender<ViewerCommand>,
-) -> Result<(), io::Error> {
+pub fn show_ui() -> Result<(), io::Error> {
     // 터미널 초기화
     enable_raw_mode()?;
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+    let channels = crate::queues::view_command::get_viewer_channels();
 
     // 동적 tick rate 설정
     const MIN_TICK_MS: u64 = 16;   // ~60fps 최대
@@ -208,10 +211,10 @@ pub fn show_ui(
     // 메인 루프
     loop {
         // 이벤트 처리
-        let rx = queues::view_command::get_viewer_channels().rx_message.lock().unwrap();
+        let rx = channels.rx_command.lock().unwrap();
         if let Ok(message) = rx.try_recv() {
             match message {
-                ViewerMessage::Quit => {
+                ViewerCommand::Quit => {
                     app.should_quit = true;
                 }
             }

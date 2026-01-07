@@ -22,3 +22,4 @@ impl<T: ViewComponent + TickingComponent> TickingView for T {}
 pub mod status;
 pub mod system_monitor;
 pub mod cpu_cores;
+pub mod vrchat_page;
